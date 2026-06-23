@@ -1,0 +1,13 @@
+.git
+.gitea
+.venv
+venv
+__pycache__
+*.pyc
+data
+.env
+*.sqlite3
+*.db
+.DS_Store
+README.md
+PLAN.MD

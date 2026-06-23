@@ -1,0 +1,11 @@
+{
+  "name": "Metr. — porównanie mieszkań",
+  "short_name": "Metr.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f6f2",
+  "theme_color": "#155c3a",
+  "icons": [
+    { "src": "/static/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }
+  ]
+}

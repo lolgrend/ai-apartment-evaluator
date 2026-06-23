@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}{{ listing.title or 'Ogłoszenie' }}{% endblock %}
+{% block content %}
+<header class="topbar"><a href="/" class="text-link">← Twoje mieszkania</a></header>
+
+<article class="detail">
+  <div class="detail-head">
+    <h1>{{ listing.title or 'Ogłoszenie' }}</h1>
+    {% if listing.url %}<a href="{{ listing.url }}" target="_blank" rel="noopener" class="text-link">Otwórz oryginalne ogłoszenie{% if listing.source %} · {{ listing.source }}{% endif %} ↗</a>{% endif %}
+  </div>
+
+  {% if listing.status == 'error' %}
+    <div class="alert alert-dismissible" role="alert">
+      <span>Błąd oceny: {{ listing.error_message }}</span>
+      <button type="button" class="alert-dismiss" aria-label="Zamknij komunikat błędu">×</button>
+    </div>
+  {% elif listing.status == 'pending' %}
+    <div class="alert">Ocena w toku…</div>
+  {% endif %}
+
+  {% if listing.score is not none %}
+  <div class="score-row">
+    <div class="score-big {{ listing.score|score_class }}">{{ listing.score }}<small>/100</small></div>
+    <div>
+      {% if listing.recommendation %}<span class="rec {{ listing.recommendation|rec_class }}">{{ listing.recommendation|rec_label }}</span>{% endif %}
+      <p class="meta">
+        {% if listing.price_pln %}{{ "{:,.0f}".format(listing.price_pln).replace(",", " ") }} zł{% endif %}
+        {% if listing.area_sqm %} · {{ listing.area_sqm }} m²{% endif %}
+        {% if listing.rooms %} · {{ listing.rooms }} pok.{% endif %}
+        {% if listing.location %} · {{ listing.location }}{% endif %}
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+  {% set ev = listing.evaluation %}
+  {% if ev %}
+  <p class="summary-big">{{ ev.summary }}</p>
+
+  <div class="assess">
+    <div><strong>Cena</strong><br>{{ ev.price_assessment }}</div>
+    <div><strong>Metraż</strong><br>{{ ev.size_assessment }}</div>
+    <div><strong>Lokalizacja</strong><br>{{ ev.location_assessment }}</div>
+  </div>
+
+  {% if ev.floorplan_assessment %}
+  <div class="card">
+    <strong>Rzut / układ</strong>
+    <p>{{ ev.floorplan_assessment }}</p>
+  </div>
+  {% endif %}
+
+  <div class="proscons">
+    <div class="pros"><h4>Mocne strony</h4><ul>{% for p in ev.pros %}<li>{{ p }}</li>{% endfor %}</ul></div>
+    <div class="cons"><h4>Na co uważać</h4><ul>{% for c in ev.cons %}<li>{{ c }}</li>{% endfor %}</ul></div>
+  </div>
+
+  {% if ev.details %}<details class="card"><summary>Pełne uzasadnienie</summary><p>{{ ev.details }}</p></details>{% endif %}
+  {% endif %}
+
+  {% if listing.images %}
+  <div class="gallery-grid">
+    {% for im in listing.images %}
+      <a class="img-cell{% if im.is_floorplan %} is-floorplan{% endif %}" href="{{ im.url }}" target="_blank" rel="noopener">
+        <img loading="lazy" src="{{ im.url }}" alt="{{ 'Rzut mieszkania' if im.is_floorplan else '' }}">
+        {% if im.is_floorplan %}<span class="floorplan-tag">Rzut</span>{% endif %}
+      </a>
+    {% endfor %}
+  </div>
+  {% elif listing.url %}
+  <a class="source-card" href="{{ listing.url }}" target="_blank" rel="noopener">
+    <span class="source-badge source-badge-lg" aria-hidden="true">{{ listing.source|source_symbol }}</span>
+    <span class="source-card-text">
+      <strong>{{ listing.source|source_label }}</strong>
+      <small>Brak zdjęć w ogłoszeniu — otwórz oryginał ↗</small>
+    </span>
+  </a>
+  {% endif %}
+
+  {% if is_owner %}
+  <div class="actions">
+    <form method="post" action="/listing/{{ listing.id }}/favorite"><button class="btn">{{ 'Usuń z ulubionych' if listing.is_favorite else 'Dodaj do ulubionych' }}</button></form>
+    <form method="post" action="/listing/{{ listing.id }}/reevaluate"><button class="btn">Oceń ponownie</button></form>
+    <form method="post" action="/listing/{{ listing.id }}/delete" onsubmit="return confirm('Usunąć ogłoszenie?')"><button class="btn btn-danger">Usuń</button></form>
+  </div>
+
+  <details class="card">
+    <summary>Udostępnianie</summary>
+    <form method="post" action="/listing/{{ listing.id }}/share">
+      <label class="check"><input type="checkbox" name="household" {{ 'checked' if listing.shared_with_household }}> Pokaż drugiemu kontu w aplikacji</label>
+      <label class="check"><input type="checkbox" name="public" {{ 'checked' if listing.is_shared }}> Publiczny link (read-only)</label>
+      <button class="btn btn-primary">Zapisz udostępnianie</button>
+    </form>
+    {% if listing.is_shared and listing.share_token %}
+      {% set link = public_base ~ '/s/' ~ listing.share_token %}
+      <div class="sharelink">
+        <input type="text" readonly value="{{ link }}" id="sharelink">
+        <button class="btn" type="button" data-copy="#sharelink">Kopiuj</button>
+      </div>
+    {% endif %}
+  </details>
+  {% endif %}
+
+  {# Komentarze #}
+  <section class="comments">
+    <h3>Komentarze</h3>
+    {% for c in listing.comments %}
+      <div class="comment {{ 'pinned' if c.is_pinned }}">
+        <span class="muted small">{{ c.user.username }}{% if c.is_pinned %} · 📌 główny{% endif %}</span>
+        <p>{{ c.body }}</p>
+      </div>
+    {% else %}<p class="muted">Brak komentarzy.</p>{% endfor %}
+    <form method="post" action="/listing/{{ listing.id }}/comment" class="comment-form">
+      <input type="text" name="body" placeholder="Dodaj komentarz…" required>
+      <label class="check small"><input type="checkbox" name="pinned"> główny</label>
+      <button class="btn">Dodaj</button>
+    </form>
+  </section>
+
+  {# Czat #}
+  <section class="chat" id="chat">
+    <h3>Zapytaj o ogłoszenie</h3>
+    <div class="chat-log">
+      {% for m in listing.messages %}
+        <div class="msg msg-{{ m.role }}">
+          <span class="msg-author">{{ 'Metr.' if m.role == 'assistant' else 'Ty' }}</span>
+          <div class="msg-body">{% if m.role == 'assistant' %}{{ m.content|chat_markdown }}{% else %}{{ m.content }}{% endif %}</div>
+        </div>
+      {% else %}<p class="muted">Zadaj pytanie o to mieszkanie.</p>{% endfor %}
+    </div>
+    <form method="post" action="/listing/{{ listing.id }}/chat" class="chat-form" data-pending-label="Pytam…">
+      <input type="text" name="message" placeholder="np. czy to dobra cena za tę lokalizację?" required>
+      <button type="submit" class="btn btn-primary">Wyślij</button>
+    </form>
+  </section>
+</article>
+{% endblock %}

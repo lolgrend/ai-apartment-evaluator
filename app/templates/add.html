@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Sprawdź ogłoszenie — Metr.{% endblock %}
+{% block content %}
+<header class="topbar"><a href="/" class="text-link">← Twoje mieszkania</a><h1>Sprawdź ogłoszenie</h1><p class="page-lead">Wklej link, a Metr. zbierze informacje i oceni ofertę według Twoich kryteriów.</p></header>
+
+{% if error %}
+  <div class="alert alert-dismissible" role="alert">
+    <span>{{ error }}</span>
+    <button type="button" class="alert-dismiss" aria-label="Zamknij komunikat błędu">×</button>
+  </div>
+{% endif %}
+
+<form method="post" action="/add" class="card" id="add-form">
+  <label>Link do ogłoszenia
+    <input type="url" name="url" inputmode="url" autocapitalize="none" placeholder="https://...">
+  </label>
+
+  <details>
+    <summary>Nie masz linku? Wklej treść ręcznie</summary>
+    <label>Treść ogłoszenia
+      <textarea name="raw_text" rows="6" placeholder="Wklej tekst ogłoszenia (przydatne gdy link jest blokowany)"></textarea>
+    </label>
+    <label>Linki do zdjęć (po jednym w linii)
+      <textarea name="images_text" rows="3" placeholder="https://.../zdjecie1.jpg"></textarea>
+    </label>
+  </details>
+
+  <fieldset>
+    <legend>Opcje analizy</legend>
+    <label class="check"><input type="checkbox" name="check_area" checked> Sprawdź okolicę (komunikacja, bezpieczeństwo)</label>
+    <label class="check"><input type="checkbox" name="compare_previous"> Porównaj z poprzednimi</label>
+    <label class="check"><input type="checkbox" name="analyze_floorplan"> Analizuj rzut / układ</label>
+  </fieldset>
+
+  <label>Dodatkowy prompt (opcjonalnie)
+    <input type="text" name="extra_prompt" placeholder="np. zwróć uwagę na hałas i parking">
+  </label>
+
+  <button type="submit" class="btn btn-primary" id="submit-btn">Oceń mieszkanie</button>
+  <p class="muted small">Pobranie strony i analiza zwykle zajmują kilkanaście sekund.</p>
+</form>
+{% endblock %}

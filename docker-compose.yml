@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    # Tag = SHA commita (immutable). Ustawiany przez ./deploy.sh / ./rollback.sh
+    # w pliku .env (IMAGE_TAG). "dev" to fallback przy ręcznym buildzie.
+    image: mieszkania:${IMAGE_TAG:-dev}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /app/data
+    volumes:
+      - ./data:/app/data
+    expose:
+      - "8000"
+    # Odkomentuj, jeśli chcesz mieć dostęp lokalnie bez tunelu:
+    # ports:
+    #   - "8000:8000"
+
+  # Cloudflare Tunnel — wystawia aplikację bez otwierania portów na VPS.
+  # Konfiguracja ingress (hostname -> http://app:8000) w panelu Cloudflare Zero Trust.
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - app

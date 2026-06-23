@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# App data (sqlite, cache zdjęć)
+data/
+*.sqlite3
+*.db
+
+# Lokalny log wdrożeń (deploy.sh / rollback.sh)
+.deploy_history
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store

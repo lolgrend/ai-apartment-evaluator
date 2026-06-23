@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f7f6f2">
+  <link rel="stylesheet" href="/static/style.css?v=3">
+  <title>{{ listing.title or 'Mieszkanie' }} — udostępnione</title>
+</head>
+<body>
+<main class="container">
+  <article class="detail">
+    <div class="detail-head">
+      <h1>{{ listing.title or 'Mieszkanie' }}</h1>
+      <p class="muted small">Udostępniony podgląd oceny</p>
+    </div>
+
+    {% if listing.score is not none %}
+    <div class="score-row">
+      <div class="score-big {{ listing.score|score_class }}">{{ listing.score }}<small>/100</small></div>
+      <div>
+        {% if listing.recommendation %}<span class="rec {{ listing.recommendation|rec_class }}">{{ listing.recommendation|rec_label }}</span>{% endif %}
+        <p class="meta">
+          {% if listing.price_pln %}{{ "{:,.0f}".format(listing.price_pln).replace(",", " ") }} zł{% endif %}
+          {% if listing.area_sqm %} · {{ listing.area_sqm }} m²{% endif %}
+          {% if listing.rooms %} · {{ listing.rooms }} pok.{% endif %}
+        </p>
+      </div>
+    </div>
+    {% endif %}
+
+    {% set ev = listing.evaluation %}
+    {% if ev %}
+    <p class="summary-big">{{ ev.summary }}</p>
+    <div class="assess">
+      <div><strong>Cena</strong><br>{{ ev.price_assessment }}</div>
+      <div><strong>Metraż</strong><br>{{ ev.size_assessment }}</div>
+      <div><strong>Lokalizacja</strong><br>{{ ev.location_assessment }}</div>
+    </div>
+    <div class="proscons">
+      <div class="pros"><h4>Mocne strony</h4><ul>{% for p in ev.pros %}<li>{{ p }}</li>{% endfor %}</ul></div>
+      <div class="cons"><h4>Na co uważać</h4><ul>{% for c in ev.cons %}<li>{{ c }}</li>{% endfor %}</ul></div>
+    </div>
+    {% endif %}
+
+    {% if listing.images %}
+    <div class="gallery-strip">{% for im in listing.images %}<img loading="lazy" src="{{ im.url }}" alt="">{% endfor %}</div>
+    {% endif %}
+
+    {% if pinned_comments %}
+    <section class="comments">
+      <h3>📌 Główne komentarze</h3>
+      {% for c in pinned_comments %}<div class="comment pinned"><span class="muted small">{{ c.user.username }}</span><p>{{ c.body }}</p></div>{% endfor %}
+    </section>
+    {% endif %}
+
+    {% if listing.url %}<p><a href="{{ listing.url }}" target="_blank" rel="noopener" class="btn">🔗 Zobacz oryginalne ogłoszenie</a></p>{% endif %}
+  </article>
+</main>
+</body>
+</html>

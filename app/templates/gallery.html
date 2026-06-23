@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Twoje mieszkania — Metr.{% endblock %}
+{% block content %}
+<header class="page-heading gallery-heading">
+  <div>
+    <h1>Twoje mieszkania</h1>
+    {% if listings %}<p class="page-lead">Porównuj oferty i wracaj do najlepszych wyborów.</p>{% endif %}
+  </div>
+  <a href="/logout" class="text-link logout-link">Wyloguj</a>
+</header>
+
+{% if not listings %}
+  <section class="empty">
+    <div class="empty-illustration" aria-hidden="true">
+      <svg viewBox="0 0 96 96"><path d="M17 68c10-19 21-29 34-29 12 0 19 6 28 19"/><path d="M34 44V25l16-11 16 11v21M43 39V28h9v11M66 34l9-7v24"/><path d="M17 68h62"/></svg>
+    </div>
+    <h2>Zacznij od pierwszej oferty</h2>
+    <p>Wklej link do ogłoszenia. Metr. zbierze najważniejsze dane i oceni je według Twoich kryteriów.</p>
+    <a href="/add" class="btn btn-primary btn-inline">Sprawdź ogłoszenie</a>
+  </section>
+{% else %}
+<div class="listing-grid">
+  {% for l in listings|sort(attribute='is_favorite', reverse=true) %}
+  <a class="cardlink {{ 'featured' if l.is_favorite else '' }}" href="/listing/{{ l.id }}">
+    <article class="listing-card">
+      <div class="thumb">
+        {% if l.images %}
+          <img loading="lazy" src="{{ l.images[0].url }}" alt="{{ l.title or 'Zdjęcie mieszkania' }}">
+        {% elif l.url %}
+          <div class="thumb-ph thumb-source">
+            <span class="source-badge" aria-hidden="true">{{ l.source|source_symbol }}</span>
+            <span>{{ l.source|source_label }}</span>
+            <small>Brak zdjęcia · zobacz ogłoszenie</small>
+          </div>
+        {% else %}
+          <div class="thumb-ph">
+            <svg aria-hidden="true" viewBox="0 0 72 72"><path d="M9 54c8-15 17-23 27-23s17 6 27 19"/><path d="M23 34V19L36 10l13 9v18M30 30v-8h8v8M49 27l7-5v18"/></svg>
+            <span>Brak zdjęcia</span>
+          </div>
+        {% endif %}
+        {% if l.is_favorite %}<span class="fav-badge" aria-label="Ulubione">♥</span>{% endif %}
+      </div>
+      <div class="card-body">
+        <div class="score-line">
+          {% if l.score is not none %}
+            <span class="score-badge {{ l.score|score_class }}"><strong>{{ l.score }}</strong><small>/100</small></span>
+          {% elif l.status == 'pending' %}<span class="score-badge score-none"><strong>…</strong></span>
+          {% elif l.status == 'error' %}<span class="score-badge score-low"><strong>!</strong></span>{% endif %}
+          {% if l.recommendation %}<span class="rec {{ l.recommendation|rec_class }}">{{ l.recommendation|rec_label }}</span>{% endif %}
+        </div>
+        <h2>{{ l.title or 'Ogłoszenie' }}</h2>
+        <dl class="listing-facts">
+          {% if l.price_pln %}<div><dt>Cena</dt><dd>{{ "{:,.0f}".format(l.price_pln).replace(",", " ") }} zł</dd></div>{% endif %}
+          {% if l.area_sqm %}<div><dt>Metraż</dt><dd>{{ l.area_sqm|round(1) }} m²</dd></div>{% endif %}
+          {% if l.rooms %}<div><dt>Pokoje</dt><dd>{{ l.rooms }}</dd></div>{% endif %}
+        </dl>
+        {% if l.summary %}<p class="summary">{{ l.summary }}</p>{% endif %}
+        {% if l.user_id != user.id %}<p class="shared-tag">Udostępnione Tobie</p>{% endif %}
+      </div>
+    </article>
+  </a>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
