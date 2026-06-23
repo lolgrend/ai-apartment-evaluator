@@ -1,5 +1,7 @@
 # AI Apartment Evaluator
 
+[![Tests](https://github.com/lolgrend/ai-apartment-evaluator/actions/workflows/tests.yml/badge.svg)](https://github.com/lolgrend/ai-apartment-evaluator/actions/workflows/tests.yml)
+
 A practical FastAPI application for evaluating apartment listings with LLMs.
 
 This project is not a toy chat wrapper. It is a small, deployable AI application
