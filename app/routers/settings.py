@@ -1,4 +1,4 @@
-"""Ustawienia: preferencje użytkownika + zarządzanie kontami (admin)."""
+"""Settings: user preferences and account management for admins."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Form, Request

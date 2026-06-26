@@ -1,4 +1,4 @@
-"""Modele ORM."""
+"""ORM models."""
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -28,10 +28,10 @@ DEFAULT_PREFERENCES: dict = {
     "price_max": None,
     "rooms_min": None,
     "location_notes": "",
-    "memory_notes": [],            # lista trwałych notatek („musi mieć balkon")
+    "memory_notes": [],            # list of persistent notes ("must have a balcony")
     "weights": {"price": 3, "location": 3, "size": 3},  # 1-5
     "default_check_area": True,
-    "model": None,                 # None = globalna wartość MODEL z env
+    "model": None,                 # None = global MODEL value from env
 }
 
 
@@ -64,7 +64,7 @@ class Listing(Base):
 
     is_favorite: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    # Dane wydobyte / ocena (denormalizacja do galerii)
+    # Extracted data / evaluation (denormalized for the gallery).
     area_sqm: Mapped[float | None] = mapped_column(Float, nullable=True)
     price_pln: Mapped[int | None] = mapped_column(Integer, nullable=True)
     rooms: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -75,7 +75,7 @@ class Listing(Base):
     evaluation: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     eval_options: Mapped[dict | None] = mapped_column(JSON, nullable=True)
 
-    # Współdzielenie
+    # Sharing.
     share_token: Mapped[str | None] = mapped_column(String(48), unique=True, nullable=True, index=True)
     is_shared: Mapped[bool] = mapped_column(Boolean, default=False)
     shared_with_household: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -126,7 +126,7 @@ class ListingComment(Base):
     listing_id: Mapped[int] = mapped_column(ForeignKey("listings.id"), index=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"))
     body: Mapped[str] = mapped_column(Text)
-    is_pinned: Mapped[bool] = mapped_column(Boolean, default=False)  # „główny komentarz"
+    is_pinned: Mapped[bool] = mapped_column(Boolean, default=False)  # pinned comment
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
 
     listing: Mapped["Listing"] = relationship(back_populates="comments")

@@ -33,15 +33,15 @@ def get_db() -> Iterator[Session]:
 
 
 def init_db() -> None:
-    """Tworzy tabele (prosty bootstrap zamiast pełnych migracji)."""
-    from . import models  # noqa: F401  — rejestracja modeli
+    """Create tables as a simple bootstrap instead of full migrations."""
+    from . import models  # noqa: F401  - register models
 
     Base.metadata.create_all(bind=engine)
     _light_migrations()
 
 
 def _light_migrations() -> None:
-    """Dodaje brakujące kolumny w istniejących tabelach (SQLite)."""
+    """Add missing columns to existing SQLite tables."""
     insp = inspect(engine)
     if "listing_images" in insp.get_table_names():
         cols = {c["name"] for c in insp.get_columns("listing_images")}

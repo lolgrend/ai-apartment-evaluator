@@ -1,4 +1,4 @@
-"""Współdzielona instancja silnika szablonów Jinja2."""
+"""Shared Jinja2 template engine instance."""
 from __future__ import annotations
 
 import os
@@ -12,10 +12,10 @@ _DIR = os.path.join(os.path.dirname(__file__), "templates")
 templates = Jinja2Templates(directory=_DIR)
 
 _REC_LABEL = {
-    "strong_yes": "Zdecydowanie tak",
-    "yes": "Tak",
-    "maybe": "Może",
-    "no": "Nie",
+    "strong_yes": "Strong yes",
+    "yes": "Yes",
+    "maybe": "Maybe",
+    "no": "No",
 }
 _REC_CLASS = {"strong_yes": "rec-strong", "yes": "rec-yes", "maybe": "rec-maybe", "no": "rec-no"}
 
@@ -30,14 +30,14 @@ def _score_class(score: int | None) -> str:
     return "score-low"
 
 
-# Rozpoznanie portalu po fragmencie hosta -> (czytelna nazwa, symbol).
+# Portal detection by host fragment -> (readable name, symbol).
 _SOURCES = (
     ("otodom", ("Otodom", "O")),
     ("olx", ("OLX", "OLX")),
     ("morizon", ("Morizon", "M")),
     ("gratka", ("Gratka", "G")),
     ("domiporta", ("Domiporta", "D")),
-    ("nieruchomosci-online", ("Nieruchomości-online", "N")),
+    ("nieruchomosci-online", ("Nieruchomosci-online", "N")),
     ("allegro", ("Allegro", "A")),
     ("facebook", ("Facebook", "f")),
 )
@@ -48,7 +48,7 @@ def _source_meta(source: str | None) -> tuple[str, str]:
     for key, meta in _SOURCES:
         if key in low:
             return meta
-    return (source or "Źródło", "↗")
+    return (source or "Source", "↗")
 
 
 _CHAT_TAGS = {
@@ -59,7 +59,7 @@ _CHAT_TAGS = {
 
 
 def _chat_markdown(value: str | None) -> Markup:
-    """Renderuje Markdown modelu i usuwa niebezpieczny HTML/URL-e."""
+    """Render model Markdown and strip unsafe HTML/URLs."""
     rendered = markdown.markdown(
         value or "",
         extensions=["nl2br", "sane_lists", "tables"],

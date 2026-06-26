@@ -1,21 +1,21 @@
 {% extends "base.html" %}
-{% block title %}{{ listing.title or 'Ogłoszenie' }}{% endblock %}
+{% block title %}{{ listing.title or 'Listing' }}{% endblock %}
 {% block content %}
-<header class="topbar"><a href="/" class="text-link">← Twoje mieszkania</a></header>
+<header class="topbar"><a href="/" class="text-link">← Your apartments</a></header>
 
 <article class="detail">
   <div class="detail-head">
-    <h1>{{ listing.title or 'Ogłoszenie' }}</h1>
-    {% if listing.url %}<a href="{{ listing.url }}" target="_blank" rel="noopener" class="text-link">Otwórz oryginalne ogłoszenie{% if listing.source %} · {{ listing.source }}{% endif %} ↗</a>{% endif %}
+    <h1>{{ listing.title or 'Listing' }}</h1>
+    {% if listing.url %}<a href="{{ listing.url }}" target="_blank" rel="noopener" class="text-link">Open original listing{% if listing.source %} · {{ listing.source }}{% endif %} ↗</a>{% endif %}
   </div>
 
   {% if listing.status == 'error' %}
     <div class="alert alert-dismissible" role="alert">
-      <span>Błąd oceny: {{ listing.error_message }}</span>
-      <button type="button" class="alert-dismiss" aria-label="Zamknij komunikat błędu">×</button>
+      <span>Evaluation error: {{ listing.error_message }}</span>
+      <button type="button" class="alert-dismiss" aria-label="Dismiss error message">×</button>
     </div>
   {% elif listing.status == 'pending' %}
-    <div class="alert">Ocena w toku…</div>
+    <div class="alert">Evaluation in progress...</div>
   {% endif %}
 
   {% if listing.score is not none %}
@@ -24,9 +24,9 @@
     <div>
       {% if listing.recommendation %}<span class="rec {{ listing.recommendation|rec_class }}">{{ listing.recommendation|rec_label }}</span>{% endif %}
       <p class="meta">
-        {% if listing.price_pln %}{{ "{:,.0f}".format(listing.price_pln).replace(",", " ") }} zł{% endif %}
+        {% if listing.price_pln %}{{ "{:,.0f}".format(listing.price_pln).replace(",", " ") }} PLN{% endif %}
         {% if listing.area_sqm %} · {{ listing.area_sqm }} m²{% endif %}
-        {% if listing.rooms %} · {{ listing.rooms }} pok.{% endif %}
+        {% if listing.rooms %} · {{ listing.rooms }} rooms{% endif %}
         {% if listing.location %} · {{ listing.location }}{% endif %}
       </p>
     </div>
@@ -38,32 +38,32 @@
   <p class="summary-big">{{ ev.summary }}</p>
 
   <div class="assess">
-    <div><strong>Cena</strong><br>{{ ev.price_assessment }}</div>
-    <div><strong>Metraż</strong><br>{{ ev.size_assessment }}</div>
-    <div><strong>Lokalizacja</strong><br>{{ ev.location_assessment }}</div>
+    <div><strong>Price</strong><br>{{ ev.price_assessment }}</div>
+    <div><strong>Area</strong><br>{{ ev.size_assessment }}</div>
+    <div><strong>Location</strong><br>{{ ev.location_assessment }}</div>
   </div>
 
   {% if ev.floorplan_assessment %}
   <div class="card">
-    <strong>Rzut / układ</strong>
+    <strong>Floor plan / layout</strong>
     <p>{{ ev.floorplan_assessment }}</p>
   </div>
   {% endif %}
 
   <div class="proscons">
-    <div class="pros"><h4>Mocne strony</h4><ul>{% for p in ev.pros %}<li>{{ p }}</li>{% endfor %}</ul></div>
-    <div class="cons"><h4>Na co uważać</h4><ul>{% for c in ev.cons %}<li>{{ c }}</li>{% endfor %}</ul></div>
+    <div class="pros"><h4>Strengths</h4><ul>{% for p in ev.pros %}<li>{{ p }}</li>{% endfor %}</ul></div>
+    <div class="cons"><h4>Watch-outs</h4><ul>{% for c in ev.cons %}<li>{{ c }}</li>{% endfor %}</ul></div>
   </div>
 
-  {% if ev.details %}<details class="card"><summary>Pełne uzasadnienie</summary><p>{{ ev.details }}</p></details>{% endif %}
+  {% if ev.details %}<details class="card"><summary>Full reasoning</summary><p>{{ ev.details }}</p></details>{% endif %}
   {% endif %}
 
   {% if listing.images %}
   <div class="gallery-grid">
     {% for im in listing.images %}
       <a class="img-cell{% if im.is_floorplan %} is-floorplan{% endif %}" href="{{ im.url }}" target="_blank" rel="noopener">
-        <img loading="lazy" src="{{ im.url }}" alt="{{ 'Rzut mieszkania' if im.is_floorplan else '' }}">
-        {% if im.is_floorplan %}<span class="floorplan-tag">Rzut</span>{% endif %}
+        <img loading="lazy" src="{{ im.url }}" alt="{{ 'Apartment floor plan' if im.is_floorplan else '' }}">
+        {% if im.is_floorplan %}<span class="floorplan-tag">Floor plan</span>{% endif %}
       </a>
     {% endfor %}
   </div>
@@ -72,65 +72,65 @@
     <span class="source-badge source-badge-lg" aria-hidden="true">{{ listing.source|source_symbol }}</span>
     <span class="source-card-text">
       <strong>{{ listing.source|source_label }}</strong>
-      <small>Brak zdjęć w ogłoszeniu — otwórz oryginał ↗</small>
+      <small>No photos in the listing - open original ↗</small>
     </span>
   </a>
   {% endif %}
 
   {% if is_owner %}
   <div class="actions">
-    <form method="post" action="/listing/{{ listing.id }}/favorite"><button class="btn">{{ 'Usuń z ulubionych' if listing.is_favorite else 'Dodaj do ulubionych' }}</button></form>
-    <form method="post" action="/listing/{{ listing.id }}/reevaluate"><button class="btn">Oceń ponownie</button></form>
-    <form method="post" action="/listing/{{ listing.id }}/delete" onsubmit="return confirm('Usunąć ogłoszenie?')"><button class="btn btn-danger">Usuń</button></form>
+    <form method="post" action="/listing/{{ listing.id }}/favorite"><button class="btn">{{ 'Remove favorite' if listing.is_favorite else 'Add favorite' }}</button></form>
+    <form method="post" action="/listing/{{ listing.id }}/reevaluate"><button class="btn">Evaluate again</button></form>
+    <form method="post" action="/listing/{{ listing.id }}/delete" onsubmit="return confirm('Delete this listing?')"><button class="btn btn-danger">Delete</button></form>
   </div>
 
   <details class="card">
-    <summary>Udostępnianie</summary>
+    <summary>Sharing</summary>
     <form method="post" action="/listing/{{ listing.id }}/share">
-      <label class="check"><input type="checkbox" name="household" {{ 'checked' if listing.shared_with_household }}> Pokaż drugiemu kontu w aplikacji</label>
-      <label class="check"><input type="checkbox" name="public" {{ 'checked' if listing.is_shared }}> Publiczny link (read-only)</label>
-      <button class="btn btn-primary">Zapisz udostępnianie</button>
+      <label class="check"><input type="checkbox" name="household" {{ 'checked' if listing.shared_with_household }}> Show to the second account in the app</label>
+      <label class="check"><input type="checkbox" name="public" {{ 'checked' if listing.is_shared }}> Public link (read-only)</label>
+      <button class="btn btn-primary">Save sharing</button>
     </form>
     {% if listing.is_shared and listing.share_token %}
       {% set link = public_base ~ '/s/' ~ listing.share_token %}
       <div class="sharelink">
         <input type="text" readonly value="{{ link }}" id="sharelink">
-        <button class="btn" type="button" data-copy="#sharelink">Kopiuj</button>
+        <button class="btn" type="button" data-copy="#sharelink">Copy</button>
       </div>
     {% endif %}
   </details>
   {% endif %}
 
-  {# Komentarze #}
+  {# Comments #}
   <section class="comments">
-    <h3>Komentarze</h3>
+    <h3>Comments</h3>
     {% for c in listing.comments %}
       <div class="comment {{ 'pinned' if c.is_pinned }}">
-        <span class="muted small">{{ c.user.username }}{% if c.is_pinned %} · 📌 główny{% endif %}</span>
+        <span class="muted small">{{ c.user.username }}{% if c.is_pinned %} · 📌 pinned{% endif %}</span>
         <p>{{ c.body }}</p>
       </div>
-    {% else %}<p class="muted">Brak komentarzy.</p>{% endfor %}
+    {% else %}<p class="muted">No comments yet.</p>{% endfor %}
     <form method="post" action="/listing/{{ listing.id }}/comment" class="comment-form">
-      <input type="text" name="body" placeholder="Dodaj komentarz…" required>
-      <label class="check small"><input type="checkbox" name="pinned"> główny</label>
-      <button class="btn">Dodaj</button>
+      <input type="text" name="body" placeholder="Add a comment..." required>
+      <label class="check small"><input type="checkbox" name="pinned"> pinned</label>
+      <button class="btn">Add</button>
     </form>
   </section>
 
-  {# Czat #}
+  {# Chat #}
   <section class="chat" id="chat">
-    <h3>Zapytaj o ogłoszenie</h3>
+    <h3>Ask about the listing</h3>
     <div class="chat-log">
       {% for m in listing.messages %}
         <div class="msg msg-{{ m.role }}">
-          <span class="msg-author">{{ 'Metr.' if m.role == 'assistant' else 'Ty' }}</span>
+          <span class="msg-author">{{ 'Metr.' if m.role == 'assistant' else 'You' }}</span>
           <div class="msg-body">{% if m.role == 'assistant' %}{{ m.content|chat_markdown }}{% else %}{{ m.content }}{% endif %}</div>
         </div>
-      {% else %}<p class="muted">Zadaj pytanie o to mieszkanie.</p>{% endfor %}
+      {% else %}<p class="muted">Ask a question about this apartment.</p>{% endfor %}
     </div>
-    <form method="post" action="/listing/{{ listing.id }}/chat" class="chat-form" data-pending-label="Pytam…">
-      <input type="text" name="message" placeholder="np. czy to dobra cena za tę lokalizację?" required>
-      <button type="submit" class="btn btn-primary">Wyślij</button>
+    <form method="post" action="/listing/{{ listing.id }}/chat" class="chat-form" data-pending-label="Asking...">
+      <input type="text" name="message" placeholder="e.g. is this a good price for this location?" required>
+      <button type="submit" class="btn btn-primary">Send</button>
     </form>
   </section>
 </article>

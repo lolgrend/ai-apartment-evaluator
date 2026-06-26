@@ -1,4 +1,4 @@
-"""Punkt wejścia aplikacji FastAPI."""
+"""FastAPI application entrypoint."""
 from __future__ import annotations
 
 import os
@@ -42,7 +42,7 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Szukacz mieszkań", lifespan=lifespan)
+app = FastAPI(title="Apartment Evaluator", lifespan=lifespan)
 app.add_middleware(SessionMiddleware, secret_key=settings.secret_key, max_age=60 * 60 * 24 * 30)
 
 _static_dir = os.path.join(os.path.dirname(__file__), "static")

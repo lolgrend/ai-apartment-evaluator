@@ -1,4 +1,4 @@
-// Kopiowanie linku udostępniania
+// Share-link copy helper.
 document.addEventListener("click", (e) => {
   const btn = e.target.closest("[data-copy]");
   if (!btn) return;
@@ -6,11 +6,11 @@ document.addEventListener("click", (e) => {
   if (!input) return;
   const text = input.value;
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => flash(btn, "Skopiowano ✓"));
+    navigator.clipboard.writeText(text).then(() => flash(btn, "Copied ✓"));
   } else {
     input.select();
     document.execCommand("copy");
-    flash(btn, "Skopiowano ✓");
+    flash(btn, "Copied ✓");
   }
 });
 
@@ -20,14 +20,14 @@ function flash(btn, msg) {
   setTimeout(() => (btn.textContent = old), 1500);
 }
 
-// Komunikaty błędów można zamknąć bez przeładowania strony.
+// Dismiss error messages without reloading the page.
 document.addEventListener("click", (e) => {
   const btn = e.target.closest(".alert-dismiss");
   if (!btn) return;
   btn.closest(".alert")?.remove();
 });
 
-// Spinner przy dodawaniu (ocena trwa kilkanaście sekund)
+// Loading state for adding a listing.
 const addForm = document.getElementById("add-form");
 if (addForm) {
   const addButton = document.getElementById("submit-btn");
@@ -43,7 +43,7 @@ if (addForm) {
     if (addButton) {
       addButton.disabled = true;
       addButton.classList.add("is-loading");
-      addButton.textContent = "Analizuję…";
+      addButton.textContent = "Analyzing...";
     }
   });
 
@@ -58,11 +58,11 @@ if (addForm) {
   });
 }
 
-// Auto-scroll czatu na dół
+// Auto-scroll chat to the bottom.
 const log = document.querySelector(".chat-log");
 if (log) log.scrollTop = log.scrollHeight;
 
-// Jedno wysłanie na raz — chroni przed podwójnym kliknięciem i Enterem.
+// One send at a time to prevent double-click and Enter duplicates.
 const chatForm = document.querySelector(".chat-form");
 if (chatForm) {
   const chatButton = chatForm.querySelector("button[type='submit'], button:not([type])");
@@ -80,11 +80,11 @@ if (chatForm) {
     if (chatButton) {
       chatButton.disabled = true;
       chatButton.classList.add("is-loading");
-      chatButton.textContent = chatForm.dataset.pendingLabel || "Wysyłam…";
+      chatButton.textContent = chatForm.dataset.pendingLabel || "Sending...";
     }
   });
 
-  // Safari nie zawsze uruchamia implicit submit formularza z pojedynczym inputem.
+  // Safari does not always trigger implicit submit on single-input forms.
   chatInput?.addEventListener("keydown", (e) => {
     if (e.key !== "Enter" || e.shiftKey || e.isComposing || e.keyCode === 229) return;
     e.preventDefault();

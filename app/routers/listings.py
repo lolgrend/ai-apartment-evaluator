@@ -1,4 +1,4 @@
-"""Ogłoszenia: dodawanie, ocena, galeria, szczegóły, ulubione, udostępnianie."""
+"""Listings: add, evaluate, gallery, details, favorites, and sharing."""
 from __future__ import annotations
 
 import secrets
@@ -22,7 +22,7 @@ router = APIRouter()
 def _apply_floorplan_detection(
     images: list[ListingImage], detected_indices: list[int]
 ) -> None:
-    """Łączy wykrycie modelu z heurystyką scrapera; indeksy są 1-based."""
+    """Merge model detection with scraper heuristics; indices are 1-based."""
     detected = {index for index in detected_indices if 1 <= index <= len(images)}
     for index, image in enumerate(images, start=1):
         image.is_floorplan = image.is_floorplan or index in detected
@@ -31,16 +31,16 @@ def _apply_floorplan_detection(
 def _get_listing_for_view(db: Session, listing_id: int, user: User) -> Listing:
     listing = db.get(Listing, listing_id)
     if listing is None:
-        raise HTTPException(404, "Nie znaleziono ogłoszenia")
+        raise HTTPException(404, "Listing not found")
     if listing.user_id != user.id and not listing.shared_with_household:
-        raise HTTPException(403, "Brak dostępu")
+        raise HTTPException(403, "Access denied")
     return listing
 
 
 def _get_own_listing(db: Session, listing_id: int, user: User) -> Listing:
     listing = db.get(Listing, listing_id)
     if listing is None or listing.user_id != user.id:
-        raise HTTPException(404, "Nie znaleziono ogłoszenia")
+        raise HTTPException(404, "Listing not found")
     return listing
 
 
@@ -80,7 +80,7 @@ def add_submit(
     if not url and not raw_text:
         return templates.TemplateResponse(
             request, "add.html",
-            {"user": user, "error": "Podaj link albo wklej treść ogłoszenia."},
+            {"user": user, "error": "Provide a link or paste the listing text."},
             status_code=400,
         )
 
@@ -100,18 +100,18 @@ def add_submit(
             if not raw_text:
                 return templates.TemplateResponse(
                     request, "add.html",
-                    {"user": user, "error": f"Nie udało się pobrać linku: {exc}. "
-                     "Wklej treść ogłoszenia ręcznie."},
+                    {"user": user, "error": f"Could not fetch the link: {exc}. "
+                     "Paste the listing text manually."},
                     status_code=400,
                 )
 
-    # Ręcznie wklejone URL-e zdjęć (po jednym w linii)
+    # Manually pasted image URLs (one per line).
     manual_imgs = [
         scraper.ScrapedImage(url=ln.strip())
         for ln in images_text.splitlines()
         if ln.strip().startswith("http") and not scraper._is_junk_image(ln.strip())
     ]
-    # Rzut zawsze najpierw, żeby zmieścił się w limicie i trafił do agenta.
+    # Keep floor plans first so they stay within the image limit and reach the agent.
     all_imgs = scraped_imgs + manual_imgs
     all_imgs.sort(key=lambda i: 0 if i.is_floorplan else 1)
     all_imgs = all_imgs[: settings.max_images]
@@ -139,7 +139,7 @@ def add_submit(
         listing_images.append(listing_image)
         db.add(listing_image)
 
-    # Ocena (synchronicznie)
+    # Evaluation (synchronous).
     previous = []
     available_listings = None
     listing_reader = None
@@ -148,7 +148,7 @@ def add_submit(
             select(Listing).where(Listing.user_id == user.id, Listing.summary.isnot(None))
             .order_by(Listing.created_at.desc()).limit(10)
         ).all()
-        previous = [f"{l.title or 'ogłoszenie'}: {l.summary}" for l in prev_rows]
+        previous = [f"{l.title or 'listing'}: {l.summary}" for l in prev_rows]
         available_listings = accessible_listing_catalog(
             db, user, exclude_listing_id=listing.id
         )
@@ -173,7 +173,7 @@ def add_submit(
         listing.price_pln = result.price_pln
         listing.rooms = result.rooms
         listing.location = result.location
-        listing.title = listing.title or (result.location or "Ogłoszenie")
+        listing.title = listing.title or (result.location or "Listing")
         listing.evaluation = result.model_dump()
         _apply_floorplan_detection(listing_images, result.floorplan_image_indices)
     except Exception as exc:  # noqa: BLE001
@@ -246,7 +246,7 @@ def delete_listing(listing_id: int, db: Session = Depends(get_db), user: User = 
     return RedirectResponse("/", status_code=303)
 
 
-# ── Komentarze ──────────────────────────────────────────────────────────────
+# Comments
 
 @router.post("/listing/{listing_id}/comment")
 def add_comment(
@@ -263,7 +263,7 @@ def add_comment(
     return RedirectResponse(f"/listing/{listing.id}", status_code=303)
 
 
-# ── Współdzielenie ──────────────────────────────────────────────────────────
+# Sharing
 
 @router.post("/listing/{listing_id}/share")
 def toggle_share(
@@ -283,7 +283,7 @@ def toggle_share(
 def public_view(token: str, request: Request, db: Session = Depends(get_db)):
     listing = db.scalar(select(Listing).where(Listing.share_token == token))
     if listing is None or not listing.is_shared:
-        raise HTTPException(404, "Link nieaktywny")
+        raise HTTPException(404, "Link inactive")
     pinned = [c for c in listing.comments if c.is_pinned]
     return templates.TemplateResponse(
         request, "share.html", {"listing": listing, "pinned_comments": pinned}

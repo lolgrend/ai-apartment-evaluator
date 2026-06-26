@@ -1,4 +1,4 @@
-"""Uwierzytelnianie: hashowanie haseł (pbkdf2) + zależności sesji."""
+"""Authentication: password hashing (pbkdf2) and session dependencies."""
 from __future__ import annotations
 
 import hashlib
@@ -58,5 +58,5 @@ def require_user(request: Request, db: Session = Depends(get_db)) -> User:
 
 def require_admin(user: User = Depends(require_user)) -> User:
     if not user.is_admin:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Brak uprawnień")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
     return user

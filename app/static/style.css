@@ -106,7 +106,7 @@ h3 { margin: 2rem 0 .75rem; font-size: 1.15rem; }
 .thumb-ph span { font-size: .78rem; font-weight: 600; letter-spacing: .03em; }
 .thumb-ph small { font-size: .68rem; font-weight: 500; color: var(--muted); letter-spacing: .01em; }
 
-/* Karta/badge źródła — gdy ogłoszenie nie ma zdjęć. */
+/* Source card/badge for listings without photos. */
 .source-badge {
   display: inline-grid; place-content: center;
   width: 46px; height: 46px; border-radius: 12px;

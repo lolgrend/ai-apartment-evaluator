@@ -18,7 +18,7 @@ class PromptInjectionGuardrailTests(unittest.TestCase):
 
     def test_allows_regular_listing_question(self):
         result = guardrails.check_prompt_injection(
-            "Porównaj proszę to mieszkanie z Jagodnem pod kątem ceny i dojazdu."
+            "Please compare this apartment with Jagodno for price and commute."
         )
 
         self.assertFalse(result.is_blocked)

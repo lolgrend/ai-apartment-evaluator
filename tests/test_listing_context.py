@@ -22,8 +22,8 @@ class ListingContextTests(unittest.TestCase):
 
         self.jagodno = Listing(
             user_id=self.user.id,
-            title="Mieszkanie na Jagodnie",
-            raw_text="Balkon, garaż i dobry układ.",
+            title="Apartment in Jagodno",
+            raw_text="Balcony, garage, and a good layout.",
             status="evaluated",
             price_pln=650_000,
             area_sqm=58,
@@ -31,18 +31,18 @@ class ListingContextTests(unittest.TestCase):
             location="Jagodno",
             score=84,
             recommendation="yes",
-            summary="Dobra cena, słabszy dojazd.",
-            evaluation={"details": "Cena jest atrakcyjna, lecz dojazd trwa długo."},
+            summary="Good price, weaker commute.",
+            evaluation={"details": "The price is attractive, but the commute is long."},
         )
         self.private_other = Listing(
             user_id=self.other.id,
-            title="Prywatne mieszkanie",
-            raw_text="Nie powinno być widoczne.",
+            title="Private apartment",
+            raw_text="Should not be visible.",
         )
         self.shared_other = Listing(
             user_id=self.other.id,
-            title="Współdzielone mieszkanie",
-            raw_text="Widoczne dla gospodarstwa domowego.",
+            title="Shared apartment",
+            raw_text="Visible to the household.",
             shared_with_household=True,
         )
         self.db.add_all([self.jagodno, self.private_other, self.shared_other])
@@ -50,7 +50,7 @@ class ListingContextTests(unittest.TestCase):
         self.db.add(ListingComment(
             listing_id=self.jagodno.id,
             user_id=self.user.id,
-            body="Sprawdzić hałas wieczorem.",
+            body="Check evening noise.",
             is_pinned=True,
         ))
         self.db.commit()
@@ -69,7 +69,7 @@ class ListingContextTests(unittest.TestCase):
         self.assertEqual(result[0]["score"], 84)
         self.assertEqual(
             result[0]["evaluation"]["details"],
-            "Cena jest atrakcyjna, lecz dojazd trwa długo.",
+            "The price is attractive, but the commute is long.",
         )
         self.assertEqual(result[0]["user_comments"][0]["pinned"], True)
 

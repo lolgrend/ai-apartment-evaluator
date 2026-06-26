@@ -1,63 +1,63 @@
 {% extends "base.html" %}
-{% block title %}Ustawienia — Metr.{% endblock %}
+{% block title %}Settings - Metr.{% endblock %}
 {% block content %}
-<header class="topbar"><a href="/" class="text-link">← Twoje mieszkania</a><h1>Ustawienia</h1><p class="page-lead">Dopasuj kryteria, według których oceniane są oferty.</p></header>
+<header class="topbar"><a href="/" class="text-link">← Your apartments</a><h1>Settings</h1><p class="page-lead">Tune the criteria used to evaluate listings.</p></header>
 
-{% if saved %}<div class="alert ok">Zmiany zostały zapisane.</div>{% endif %}
+{% if saved %}<div class="alert ok">Changes saved.</div>{% endif %}
 
 <form method="post" action="/settings" class="card">
-  <h3>Kryteria mieszkania</h3>
+  <h3>Apartment criteria</h3>
   <div class="row2">
-    <label>Metraż min (m²)<input type="number" name="size_min" value="{{ prefs.size_min or '' }}"></label>
-    <label>Metraż max (m²)<input type="number" name="size_max" value="{{ prefs.size_max or '' }}"></label>
+    <label>Min area (m²)<input type="number" name="size_min" value="{{ prefs.size_min or '' }}"></label>
+    <label>Max area (m²)<input type="number" name="size_max" value="{{ prefs.size_max or '' }}"></label>
   </div>
   <div class="row2">
-    <label>Maks. cena (PLN)<input type="number" name="price_max" value="{{ prefs.price_max or '' }}"></label>
-    <label>Min. pokoi<input type="number" name="rooms_min" value="{{ prefs.rooms_min or '' }}"></label>
+    <label>Max price (PLN)<input type="number" name="price_max" value="{{ prefs.price_max or '' }}"></label>
+    <label>Min rooms<input type="number" name="rooms_min" value="{{ prefs.rooms_min or '' }}"></label>
   </div>
-  <label>Preferowana lokalizacja / okolica
+  <label>Preferred location / area
     <input type="text" name="location_notes" value="{{ prefs.location_notes }}">
   </label>
-  <label>Trwałe notatki (po jednej w linii — „musi mieć balkon", „nie parter")
+  <label>Persistent notes (one per line, e.g. "must have a balcony", "not ground floor")
     <textarea name="memory_notes" rows="4">{{ prefs.memory_notes|join('\n') }}</textarea>
   </label>
 
-  <h3>Wagi (1–5)</h3>
+  <h3>Weights (1-5)</h3>
   <div class="row3">
-    <label>Cena<input type="number" name="weight_price" min="1" max="5" value="{{ prefs.weights.price }}"></label>
-    <label>Lokalizacja<input type="number" name="weight_location" min="1" max="5" value="{{ prefs.weights.location }}"></label>
-    <label>Metraż<input type="number" name="weight_size" min="1" max="5" value="{{ prefs.weights.size }}"></label>
+    <label>Price<input type="number" name="weight_price" min="1" max="5" value="{{ prefs.weights.price }}"></label>
+    <label>Location<input type="number" name="weight_location" min="1" max="5" value="{{ prefs.weights.location }}"></label>
+    <label>Area<input type="number" name="weight_size" min="1" max="5" value="{{ prefs.weights.size }}"></label>
   </div>
-  <label class="check"><input type="checkbox" name="default_check_area" {{ 'checked' if prefs.default_check_area }}> Domyślnie sprawdzaj okolicę</label>
+  <label class="check"><input type="checkbox" name="default_check_area" {{ 'checked' if prefs.default_check_area }}> Check the area by default</label>
 
   <h3>Model AI</h3>
-  <label>Model używany do oceny i czatu
+  <label>Model used for evaluation and chat
     <select name="model">
-      <option value="">Domyślny z konfiguracji ({{ default_model }})</option>
+      <option value="">Default from configuration ({{ default_model }})</option>
       {% for model_id, model_label in model_options.items() %}
       <option value="{{ model_id }}" {{ 'selected' if prefs.model == model_id }}>{{ model_label }}</option>
       {% endfor %}
     </select>
   </label>
 
-  <button class="btn btn-primary">Zapisz</button>
+  <button class="btn btn-primary">Save</button>
 </form>
 
 {% if user.is_admin %}
 <div class="card">
-  <h3>Konta (admin)</h3>
+  <h3>Accounts (admin)</h3>
   <ul class="userlist">
     {% for u in other_users %}<li>{{ u.username }}{% if u.is_admin %} · admin{% endif %}</li>{% endfor %}
   </ul>
   <form method="post" action="/settings/users">
     <div class="row2">
       <label>Login<input type="text" name="username" autocapitalize="none" required></label>
-      <label>Hasło<input type="password" name="password" required></label>
+      <label>Password<input type="password" name="password" required></label>
     </div>
-    <button class="btn">Dodaj konto</button>
+    <button class="btn">Add account</button>
   </form>
 </div>
 {% endif %}
 
-<p class="muted small" style="text-align:center;margin-top:1rem"><a href="/logout">Wyloguj</a></p>
+<p class="muted small" style="text-align:center;margin-top:1rem"><a href="/logout">Log out</a></p>
 {% endblock %}

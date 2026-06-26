@@ -1,28 +1,28 @@
 {% extends "base.html" %}
 {% set show_nav = false %}
-{% block title %}Logowanie — Metr.{% endblock %}
+{% block title %}Log in - Metr.{% endblock %}
 {% block content %}
 <div class="auth-shell">
   <section class="auth-intro">
     <a href="/login" class="brand">Metr.</a>
-    <h1>Mądrzejszy wybór mieszkania.</h1>
-    <p>Zbieraj oferty w jednym miejscu, oceniaj je według własnych kryteriów i podejmuj decyzje bez chaosu.</p>
+    <h1>A smarter way to choose an apartment.</h1>
+    <p>Collect listings in one place, evaluate them against your own criteria, and make decisions without the chaos.</p>
   </section>
   <section class="auth-card">
     <div class="auth-card-head">
-      <h2>Witaj ponownie</h2>
-      <p>Zaloguj się, aby przejść do swoich mieszkań.</p>
+      <h2>Welcome back</h2>
+      <p>Log in to continue to your apartments.</p>
     </div>
     {% if error %}
       <div class="alert alert-dismissible" role="alert">
         <span>{{ error }}</span>
-        <button type="button" class="alert-dismiss" aria-label="Zamknij komunikat błędu">×</button>
+        <button type="button" class="alert-dismiss" aria-label="Dismiss error message">×</button>
       </div>
     {% endif %}
     <form method="post" action="/login">
       <label>Login<input type="text" name="username" autocomplete="username" autocapitalize="none" required></label>
-      <label>Hasło<input type="password" name="password" autocomplete="current-password" required></label>
-      <button type="submit" class="btn btn-primary">Zaloguj się</button>
+      <label>Password<input type="password" name="password" autocomplete="current-password" required></label>
+      <button type="submit" class="btn btn-primary">Log in</button>
     </form>
   </section>
 </div>

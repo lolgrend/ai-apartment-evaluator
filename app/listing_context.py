@@ -1,4 +1,4 @@
-"""Kontrolowany, read-only dostęp agenta do zapisanych mieszkań."""
+"""Controlled read-only agent access to saved apartments."""
 from __future__ import annotations
 
 from sqlalchemy import or_, select
@@ -17,7 +17,7 @@ def accessible_listing_catalog(
     return [
         {
             "id": row.id,
-            "title": row.title or f"Ogłoszenie #{row.id}",
+            "title": row.title or f"Listing #{row.id}",
             "location": row.location,
         }
         for row in rows
@@ -33,7 +33,7 @@ def read_listing_details(
     *,
     exclude_listing_id: int | None = None,
 ) -> list[dict]:
-    """Zwraca wyłącznie rekordy, które użytkownik może zobaczyć w aplikacji."""
+    """Return only records the user can see in the application."""
     stmt = _accessible_stmt(user)
     if exclude_listing_id is not None:
         stmt = stmt.where(Listing.id != exclude_listing_id)
@@ -60,7 +60,7 @@ def _accessible_stmt(user: User):
 def _serialize_listing(listing: Listing) -> dict:
     return {
         "id": listing.id,
-        "title": listing.title or f"Ogłoszenie #{listing.id}",
+        "title": listing.title or f"Listing #{listing.id}",
         "url": listing.url,
         "source": listing.source,
         "price_pln": listing.price_pln,

@@ -1,4 +1,4 @@
-"""Konfiguracja aplikacji ładowana z env / .env."""
+"""Application configuration loaded from env / .env."""
 from __future__ import annotations
 
 from functools import lru_cache
@@ -18,7 +18,7 @@ MODEL_OPTIONS: dict[str, str] = {
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
-    # Brak wartości zatrzymuje start aplikacji. Nie ma fallbacku do API dostawcy.
+    # Missing values stop application startup. There is no provider API fallback.
     lite_llm_key: str = Field(min_length=1)
     lite_llm_base_url: str = Field(min_length=1)
     secret_key: str = "dev-secret-zmien-mnie"

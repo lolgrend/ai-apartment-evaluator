@@ -1,9 +1,9 @@
-"""Pobieranie i parsowanie ogłoszeń.
+"""Listing fetching and parsing.
 
-Tryby:
-  - httpx:      szybkie pobranie HTML
-  - playwright: pełna przeglądarka (Chromium) — radzi sobie z anty-botem (OLX/Otodom)
-  - auto:       httpx → jeśli treść wygląda na zablokowaną/pustą, próbuj playwright
+Modes:
+  - httpx: fast HTML fetch
+  - playwright: full Chromium browser for anti-bot pages (OLX/Otodom)
+  - auto: httpx, then Playwright when content looks blocked or empty
 """
 from __future__ import annotations
 
@@ -23,11 +23,11 @@ _UA = (
 
 _BLOCK_HINTS = ("captcha", "verify you are human", "dostęp został zablokowany", "cloudflare")
 
-# Słowa kluczowe sygnalizujące rzut/plan mieszkania (PL + EN).
+# Keywords that suggest an apartment floor plan (PL + EN).
 _FLOORPLAN_HINTS = ("rzut", "plan mieszkania", "plan lokalu", "floor plan", "floorplan")
 
-# Fragmenty URL-i, które są elementami UI portalu (logo, ikony, sprite'y,
-# placeholdery) — to nie są zdjęcia mieszkania i nie wolno ich dodawać.
+# URL fragments used by portal UI assets (logos, icons, sprites, placeholders).
+# These are not apartment photos and must not be added.
 _JUNK_IMAGE_HINTS = (
     "logo", "sprite", "icon", "favicon", "placeholder", "avatar",
     "watermark", "/static/", "statics.", "/assets/", "badge",
@@ -35,7 +35,7 @@ _JUNK_IMAGE_HINTS = (
 
 
 def _is_junk_image(url: str) -> bool:
-    """True dla grafik UI portalu (logo otodom/olx/morizon, ikony itp.)."""
+    """Return True for portal UI graphics such as logos and icons."""
     low = url.lower()
     if low.endswith(".svg") or ".svg?" in low:
         return True
@@ -63,7 +63,7 @@ class ScrapeResult:
 
 def _source_of(url: str) -> str:
     host = urlparse(url).netloc.lower().replace("www.", "")
-    return host or "nieznane"
+    return host or "unknown"
 
 
 def _looks_blocked(html: str) -> bool:
@@ -80,13 +80,13 @@ def _looks_like_floorplan(*hints: str | None) -> bool:
 
 def _extract_images(soup: BeautifulSoup, base_url: str) -> list[ScrapedImage]:
     found: list[ScrapedImage] = []
-    # Najpierw og:image (zwykle główne, dobre zdjęcie)
+    # First og:image, usually the main high-quality photo.
     for og in soup.find_all("meta", attrs={"property": "og:image"}):
         if og.get("content"):
             full = urljoin(base_url, og["content"])
             if not _is_junk_image(full):
                 found.append(ScrapedImage(url=full))
-    # Potem <img> z sensownych źródeł
+    # Then <img> tags with plausible sources.
     for img in soup.find_all("img"):
         src = img.get("src") or img.get("data-src") or img.get("data-srcset", "").split(" ")[0]
         if not src or src.startswith("data:"):
@@ -112,7 +112,7 @@ def _extract_images(soup: BeautifulSoup, base_url: str) -> list[ScrapedImage]:
         )
         found.append(ScrapedImage(url=full, is_floorplan=is_fp))
 
-    # Deduplikacja z zachowaniem kolejności; rzut wygrywa, jeśli ten sam URL.
+    # Deduplicate while preserving order; floor-plan metadata wins for duplicate URLs.
     seen: dict[str, ScrapedImage] = {}
     for im in found:
         cur = seen.get(im.url)
@@ -122,7 +122,7 @@ def _extract_images(soup: BeautifulSoup, base_url: str) -> list[ScrapedImage]:
             seen[im.url] = im
     out = list(seen.values())
 
-    # Posortuj: najpierw rzut(y), reszta w kolejności wystąpień.
+    # Sort floor plans first, then the rest in encounter order.
     out.sort(key=lambda i: 0 if i.is_floorplan else 1)
     return out[: settings.max_images]
 
@@ -135,10 +135,10 @@ def _clean_text(soup: BeautifulSoup) -> str:
     return "\n".join(lines)[:20000]
 
 
-# ── Heurystyki wyciągania liczb (działają też na wklejonym tekście) ──────────
+# Numeric extraction heuristics that also work on pasted text.
 
 def extract_price(text: str) -> int | None:
-    # np. "650 000 zł", "650000 PLN", "650 tys. zł"
+    # Examples: "650 000 zl", "650000 PLN", "650 tys. zl".
     m = re.search(r"(\d[\d  .]{4,})\s*(zł|pln)", text, re.IGNORECASE)
     if m:
         digits = re.sub(r"[  .]", "", m.group(1))
@@ -202,7 +202,7 @@ def _fetch_httpx(url: str) -> str:
 
 
 def _fetch_playwright(url: str) -> str:
-    # Import leniwy — Playwright bywa nieobecny w środowisku dev.
+    # Lazy import because Playwright may be absent in local dev environments.
     from playwright.sync_api import sync_playwright
 
     with sync_playwright() as p:
@@ -211,9 +211,9 @@ def _fetch_playwright(url: str) -> str:
             ctx = browser.new_context(user_agent=_UA, locale="pl-PL")
             page = ctx.new_page()
             page.goto(url, wait_until="domcontentloaded", timeout=30000)
-            page.wait_for_timeout(2500)  # dociągnięcie treści dynamicznej
+            page.wait_for_timeout(2500)  # let dynamic content load
 
-            # Akceptacja cookies (Otodom/OLX) — best-effort.
+            # Cookie acceptance for Otodom/OLX, best effort.
             for sel in (
                 "button#onetrust-accept-btn-handler",
                 "button:has-text('Akceptuję')",
@@ -225,7 +225,7 @@ def _fetch_playwright(url: str) -> str:
                 except Exception:  # noqa: BLE001
                     continue
 
-            # Przewinięcie strony — wymusza lazy-load większości galerii.
+            # Scroll the page to trigger lazy-loaded gallery images.
             try:
                 for _ in range(6):
                     page.mouse.wheel(0, 2000)
@@ -235,7 +235,7 @@ def _fetch_playwright(url: str) -> str:
             except Exception:  # noqa: BLE001
                 pass
 
-            # Spróbuj kliknąć przycisk „Rzut" / „Plan mieszkania", żeby wczytać obrazek do DOM.
+            # Try clicking floor-plan controls so the image gets loaded into the DOM.
             for sel in (
                 "button:has-text('Rzut')",
                 "a:has-text('Rzut')",
@@ -252,7 +252,7 @@ def _fetch_playwright(url: str) -> str:
                 except Exception:  # noqa: BLE001
                     continue
 
-            # Wróć na górę dla porządku i daj DOM-owi się ustabilizować.
+            # Return to the top and give the DOM a moment to settle.
             try:
                 page.evaluate("window.scrollTo(0, 0)")
                 page.wait_for_timeout(400)
@@ -265,7 +265,7 @@ def _fetch_playwright(url: str) -> str:
 
 
 def scrape(url: str) -> ScrapeResult:
-    """Pobiera ogłoszenie zgodnie z trybem skonfigurowanym w env."""
+    """Fetch a listing according to the mode configured in env."""
     mode = settings.scraper_mode
     html = ""
 
@@ -280,9 +280,9 @@ def scrape(url: str) -> ScrapeResult:
             html = _fetch_playwright(url)
         except Exception as exc:  # noqa: BLE001
             if not html:
-                raise RuntimeError(f"Nie udało się pobrać ogłoszenia: {exc}") from exc
+                raise RuntimeError(f"Could not fetch the listing: {exc}") from exc
 
     if not html:
-        raise RuntimeError("Pusta odpowiedź — wklej treść ogłoszenia ręcznie.")
+        raise RuntimeError("Empty response. Paste the listing text manually.")
 
     return _parse_html(html, url)

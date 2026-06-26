@@ -1,4 +1,4 @@
-"""Logowanie / wylogowanie."""
+"""Login / logout routes."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Form, Request
@@ -29,7 +29,7 @@ def login_submit(
     user = db.scalar(select(User).where(User.username == username))
     if user is None or not verify_password(password, user.password_hash):
         return templates.TemplateResponse(
-            request, "login.html", {"error": "Błędny login lub hasło."}, status_code=401
+            request, "login.html", {"error": "Invalid login or password."}, status_code=401
         )
     login_user(request, user)
     return RedirectResponse("/", status_code=303)

@@ -1,4 +1,4 @@
-"""Czat o ogłoszeniu."""
+"""Listing chat route."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request
@@ -21,7 +21,7 @@ def send_message(
 ):
     listing = db.get(Listing, listing_id)
     if listing is None or (listing.user_id != user.id and not listing.shared_with_household):
-        raise HTTPException(404, "Nie znaleziono ogłoszenia")
+        raise HTTPException(404, "Listing not found")
 
     message = message.strip()
     if not message:
@@ -44,7 +44,7 @@ def send_message(
             user_id=user.id, session_id=f"listing-{listing.id}", listing_id=listing.id,
         )
     except Exception as exc:  # noqa: BLE001
-        reply = f"Błąd modelu: {exc}"
+        reply = f"Model error: {exc}"
 
     db.add(ChatMessage(listing_id=listing.id, role="assistant", content=reply))
     db.commit()
